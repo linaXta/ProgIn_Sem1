@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import lv.venta.models.Product;
 import lv.venta.repo.IProductRepo;
 import lv.venta.services.ICRUDProductService;
 import lv.venta.services.IFilteringProductService;
 
+@Service
 public class ProductServiceImplWithDB implements ICRUDProductService, IFilteringProductService {
 
 	@Autowired
@@ -39,7 +41,9 @@ public class ProductServiceImplWithDB implements ICRUDProductService, IFiltering
 	public ArrayList<Product> retrieveAllProductByTitle(String title) throws Exception{
 		if(title != null) {
 			ArrayList<Product> allProductsWithTitle = productRepo.findByTitleIgnoreCase(title);
+			System.out.println(allProductsWithTitle.get(0));
 			return allProductsWithTitle;
+			
 		
 		}else {
 			throw new Exception("wrong Title");

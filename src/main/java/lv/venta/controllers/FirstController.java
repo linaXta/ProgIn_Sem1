@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,47 +51,46 @@ public class FirstController {
 	//TODO /productOne?title=Ābols
 	
 	//localhost:8080/productOne?title=Ābols
-		@GetMapping("/productOne") 
-		public String productByParamFunc(@RequestParam("title") String title, Model model) {
-			if(title!=null) {
-				
-				try {
-					ArrayList<Product> temp = crudService.retrieveAllProductByTitle(title);
-					model.addAttribute("myAllProduct", temp);
-					return "all-product-page";
-				}
-				catch (Exception e) {
-					return "error-page";//parādīs error-page.html lapu
-				}			
-			}
+	@GetMapping("/productOne") 
+	public String productByParamFunc(@RequestParam("title") String title, Model model) {
+		if(title!=null) {
 			
-			return "error-page";//parādīs error-page.html lapu
-			
-		}
-	
-		//TODO /product/Ābols
-		@GetMapping("/product/{title}") 
-		public String productByParamFunc2(@PathVariable("title") String title, Model model) {
-			if(title!=null) {
-				try {
+			try {
 				ArrayList<Product> temp = crudService.retrieveAllProductByTitle(title);
-				model.addAttribute("myAllProduct", temp);
-				return "all-product-page";
-				}
-				catch (Exception e) {
-					return "error-page";//parādīs error-page.html lapu
-				}	
+				model.addAttribute("myAllProducts", temp);
+				return "all-products-page";
+			} catch (Exception e) {
+				return "error-page";//parādīs error-page.html lapu
 			}
 			
-			return "error-page";//parādīs error-page.html lapu
+		}
+		
+		return "error-page";//parādīs error-page.html lapu
+		
+	}
+	
+	//TODO /product/Ābols
+	@GetMapping("/product/{title}") 
+	public String productByParamFunc2(@PathVariable("title") String title, Model model) {
+		if(title!=null) {
+			
+			try {
+				ArrayList<Product> temp = crudService.retrieveAllProductByTitle(title);
+				model.addAttribute("myAllProducts", temp);
+				return "all-products-page";
+			} catch (Exception e) {
+				return "error-page";//parādīs error-page.html lapu
+			}
 			
 		}
-	
+		return "error-page";//parādīs error-page.html lapu
+	}
+
 	
 	//TODO kontrolieri, kas atgriežis visus produktus
 	@GetMapping("/allproducts") //localhost:8080/allproducts
 	public String allProductsFunc(Model model) {
-		model.addAttribute("myAllProducts",crudService.retrieveAllProducts() );
+		model.addAttribute("myAllProducts", crudService.retrieveAllProducts());
 		return "all-products-page";
 	}
 	
@@ -114,18 +114,17 @@ public class FirstController {
 		return "insert-page";//parādīs insert-page.html lapu
 	}
 	
-	//TODO 
-	
 	
 	
 	@PostMapping("/insert")
 	public String insertProductPostFunc(@Valid Product product, BindingResult result)//tiek saņemts aizpildīts produkts
 	{
 		if(!result.hasErrors()) {
-		
+			//TODO var izveidot dažādas pāŗbaudes
 			crudService.insertProductByParams(product.getTitle(), product.getPrice(), product.getDescription(), product.getQuantity());
 			return "redirect:/allproducts";//izsaucam get kontrolieri localhost:8080/allproducts
-		}else {
+		}
+		else {
 			return "insert-page";
 		}
 		
@@ -137,36 +136,39 @@ public class FirstController {
 	
 	@GetMapping("/update/{id}") //localhost:8080/update/1
 	public String updateProductByIdGetFunc(@PathVariable("id") int id, Model model) {
-			try {
-				
-				model.addAttribute("product", crudService.retrieveOneProductById(id));
-				return "update-page";//parādīs update-page.html
+		try {
+			model.addAttribute("product", crudService.retrieveOneProductById(id));
+			return "update-page";//parādīs update-page.html
 			}
-			catch (Exception e) {
-				return "error-page";
-			}
+		catch (Exception e) {
+			return "error-page";
+		}
 	}
 	
 	
 	// izveidot uupdate-page.html, kas strādās uz cita endpoint
 	// izveidot post kontrolieri, kas saņemoto objektu redigē arī allProducts sarakstā
 	
+	// TODO uzlikt visām validācijām message ziņojumus
+	// TODO nodrošināt validaciju update
+	
 	@PostMapping("/update/{id}")
-	public String updateProductByIdPostFunc(@PathVariable("id") int id,@Valid Product product, BindingResult result )//ienāk redigētais produkts
+	public String updateProductByIdPostFunc(@PathVariable("id") int id, @Valid Product product, BindingResult result)//ienāk redigētais produkts
 	{
 		if(!result.hasErrors()) {
 			try {
-				Product temp = crudService.updateProductByParams(id, product.getTitle(), product.getPrice(), product.getDescription(), product.getQuantity());
-				
+				Product temp = crudService.updateProductByParams(id, product.getTitle(), product.getPrice(),  product.getDescription(), product.getQuantity());
 				return "redirect:/product/"+temp.getTitle(); //tiks izsaukst localhost:8080/product/Abols
-			}catch (Exception e) {
-				return "redirect:/product/";//tiks izsaukst localhost:8080/product/Abols
 			}
-		}else {
-		return "update-page";
+			catch (Exception e) {
+				return "redirect:/error";//tiks izsaukts localhost:8080/error
+			}	
+		}
+	
+		else {
+			return "update-page";
 		}
 	}
-	
 	
 	@GetMapping("/error")
 	public String errorFunc() {
@@ -179,16 +181,17 @@ public class FirstController {
 	@GetMapping("/delete/{id}")
 	public String deleteProductById(@PathVariable("id") int id, Model model) {
 		try {
-			
 			crudService.deleteProductById(id);
 			model.addAttribute("myAllProducts", crudService.retrieveAllProducts());
 			return "all-products-page";//parāda all-products-page.html lapu
-		}catch (Exception e) {
+		}		
+		catch (Exception e) {
 			return "error-page";
+		}	
+		
 		}
 		
-		
-	}
+	
 	
 	
 	
