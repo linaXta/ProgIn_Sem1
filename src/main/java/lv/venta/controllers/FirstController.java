@@ -189,9 +189,22 @@ public class FirstController {
 			return "error-page";
 		}	
 		
-		}
+	}
 		
-	
+	@GetMapping("/filter/quantity/{threshold}")
+	public String filterProductByQuantityGetFunc(@PathVariable("threshold") int threshold, Model model) {
+		if(threshold >0) 
+		{
+			ArrayList<Product> products = filterService.filterByQuantityLess(threshold);
+			model.addAttribute("myAllProducts",products);
+			return "all-products-page";
+		}
+		else 
+		{
+			return "error-page";
+		}
+				
+	}
 	
 	
 	

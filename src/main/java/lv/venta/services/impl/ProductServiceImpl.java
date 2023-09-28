@@ -106,4 +106,10 @@ public class ProductServiceImpl implements ICRUDProductService, IFilteringProduc
 		return new ArrayList<>();
 
 	}
+
+	@Override
+	public ArrayList<Product> filterByQuantityLess(int quantity) {
+		// TODO izveidot, bet stradajot ar arraylistu nevis adtu bazi
+		return null;
+	}
 }
